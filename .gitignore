@@ -9,6 +9,12 @@ obj/
 *.mdb
 .vs/
 
+# Ignore appsettings.json in MessengerBackend
+backend/MessengerBackend/MessengerBackend/appsettings.json
+
+# Ignore OracleWallet directory in MessengerBackend
+backend/MessengerBackend/MessengerBackend/OracleWallet/
+
 # Angular
 node_modules/
 dist/
@@ -28,4 +34,3 @@ Thumbs.db
 
 # Environment variables file
 .env
-
