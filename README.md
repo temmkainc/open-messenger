@@ -1,6 +1,8 @@
 # Open Messenger
 
-A real-time cross-platform messenger built with .NET, SignalR, Angular, Docker, and Kubernetes.
+A real-time cross-platform messenger that is currently in progress. It will be created with with .NET, SignalR, Angular, Docker, and Kubernetes.
+
+There is a list of planned features and technologies : (In Progress..)
 
 ## 🚀 Features
 
@@ -19,7 +21,7 @@ A real-time cross-platform messenger built with .NET, SignalR, Angular, Docker, 
 - Kubernetes (optional for scaling)
 - GitHub Actions (optional for CI/CD)
 
-## 🛠️ Getting Started
+## 🛠️ Getting Started (In progress..)
 
 ### Prerequisites
 
