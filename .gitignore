@@ -1,0 +1,31 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.exe
+*.dll
+*.pdb
+*.mdb
+.vs/
+
+# Angular
+node_modules/
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+
+# System
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Environment variables file
+.env
+
