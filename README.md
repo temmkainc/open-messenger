@@ -31,7 +31,7 @@ A real-time cross-platform messenger built with .NET, SignalR, Angular, Docker, 
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/open-messenger.git
+git clone https://github.com/temmkainc/open-messenger.git
 cd open-messenger
 
 ```
