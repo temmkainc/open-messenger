@@ -24,6 +24,13 @@ namespace MessengerBackend
                 options.UseOracle(conString)
             );
 
+            builder.Services.AddCors(options => options.AddPolicy("MyCors", builder =>
+            {
+                builder.WithOrigins("http://localhost:4200").
+                AllowAnyMethod().AllowAnyHeader();
+            })
+);
+
             builder.Services.AddScoped<IUserRepository, UserRepository>();
 
             builder.Services.AddControllers();
@@ -42,7 +49,7 @@ namespace MessengerBackend
 
                 });
             }
-
+            app.UseCors("MyCors");
             app.MapControllers();
 
             app.Run();

@@ -19,24 +19,39 @@ namespace MessengerBackend.Repositories
            await _context.SaveChangesAsync();
         }
 
-        public Task DeleteUserAsync(int id)
+        public async Task DeleteUserAsync(int id)
         {
-            throw new NotImplementedException();
+            var userInDb = await _context.Users.FindAsync(id);
+
+            if (userInDb == null)
+            {
+                throw new KeyNotFoundException("User was not found.");
+            }
+
+            _context.Users.Remove(userInDb);
+            await _context.SaveChangesAsync();
         }
+
 
         public Task<IEnumerable<User>> GetAllAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task<User?> GetByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
 
         public Task UpdateUserAsync(User user)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<User?> GetUserByEmailAsync(string email)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        public async Task<User?> GetUserByIdAsync(int id)
+        {
+            return await _context.Users.FindAsync(id);
         }
     }
 }
