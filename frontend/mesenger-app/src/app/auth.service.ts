@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 import { environment } from '../environments/environment';
 import { UserCredentials } from '../models/userCredentials';
 import { jwtDecode } from 'jwt-decode';
@@ -12,30 +12,72 @@ import { LogoutDto } from '../models/logoutDto';
 })
 export class AuthService {
   private apiUrl = `${environment.apiUrl}/User`;
-  private accessTokenKey = 'access_token';
-  private refreshTokenKey = 'refresh_token';
+  private accessTokenKey = 'accessToken';
+  private refreshTokenKey = 'refreshToken';
 
   constructor(private http: HttpClient) {}
 
-  getUserFromToken(): any {
-    const token = localStorage.getItem('accessToken');
+  getUserFromToken(): Observable<any> {
+    const token = localStorage.getItem(this.accessTokenKey);
+    console.log('Access Token retrieved from localStorage:', token); 
+  
     if (token) {
       try {
         const decodedToken: any = jwtDecode(token);
         const currentTime = Math.floor(Date.now() / 1000);
   
         if (decodedToken.exp < currentTime) {
-          localStorage.removeItem('accessToken');
-          return null;
+          console.log('Token has expired, refreshing...');
+          
+          const refreshToken = localStorage.getItem(this.refreshTokenKey);
+          const userId = decodedToken.sub;
+  
+          if (!refreshToken || !userId) {
+            console.log('No refreshToken or userId found in localStorage');
+            this.logoutUserLocally();
+            return of(null);
+          }
+  
+          console.log('Sending refresh request...');
+          return this.http.post<{ accessToken: string; refreshToken: string }>(
+            `${this.apiUrl}/refresh`,
+            { userId, refreshToken }
+          ).pipe(
+            switchMap((tokens) => {
+              if (tokens) {
+                console.log('Received new tokens:', tokens);
+                this.storeTokens(tokens.accessToken, tokens.refreshToken);
+  
+                const newDecoded: any = jwtDecode(tokens.accessToken);
+                return of({
+                  id: newDecoded.sub,
+                  email: newDecoded.email,
+                  username: newDecoded.username,
+                });
+              } else {
+                console.log('Failed to refresh tokens');
+                this.logoutUserLocally();
+                return of(null);
+              }
+            })
+          );
         }
-
-        return { id: decodedToken.sub, email: decodedToken.email, username: decodedToken.username };
+  
+        console.log('Access token is valid, decoding...');
+        return of({
+          id: decodedToken.sub,
+          email: decodedToken.email,
+          username: decodedToken.username,
+        });
       } catch (error) {
         console.error('Failed to decode token', error);
-        return null;
+        this.logoutUserLocally();
+        return of(null);
       }
     }
-    return null;
+  
+    console.log('No token found in localStorage. Returning null.');
+    return of(null);
   }
   
 
@@ -62,5 +104,22 @@ export class AuthService {
 
   isLoggedIn(): boolean {
     return this.getAccessToken() !== null;
+  }
+
+  refreshAccessToken(refreshToken: string, userId: string) {
+    if (refreshToken && userId) {
+      return this.http.post<{ accessToken: string, refreshToken: string }>(
+        `${this.apiUrl}/refresh`,
+        { refreshToken, userId }
+      );
+    }
+    return of(null);
+  }
+  
+
+  
+  logoutUserLocally(): void {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
   }
 }
