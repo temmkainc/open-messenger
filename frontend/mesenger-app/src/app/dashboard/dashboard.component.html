@@ -1,0 +1,10 @@
+<div *ngIf="isLoggedIn; else loginRedirect">
+    <h1>Welcome, {{ user?.username }}</h1>
+    <p>Email: {{ user?.email }}</p>
+    <button (click)="onLogout()">Logout</button>
+  </div>
+  
+  <ng-template #loginRedirect>
+    <p>You need to be logged in to access the dashboard. Redirecting to login...</p>
+  </ng-template>
+  

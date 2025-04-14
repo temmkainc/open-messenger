@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Oracle.ManagedDataAccess.Client;
 using Microsoft.EntityFrameworkCore.Design;
 using MessengerBackend.Repositories;
+using MessengerBackend.Services;
 
 namespace MessengerBackend
 {
@@ -24,13 +25,15 @@ namespace MessengerBackend
                 options.UseOracle(conString)
             );
 
-            builder.Services.AddCors(options => options.AddPolicy("MyCors", builder =>
-            {
-                builder.WithOrigins("http://localhost:4200").
-                AllowAnyMethod().AllowAnyHeader();
-            })
-);
+            builder.Services.AddCors(options => options.AddPolicy
+                ("MyCors", builder =>
+                {
+                    builder.WithOrigins("http://localhost:4200").
+                    AllowAnyMethod().AllowAnyHeader();
+                })
+            );
 
+            builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
 
             builder.Services.AddControllers();

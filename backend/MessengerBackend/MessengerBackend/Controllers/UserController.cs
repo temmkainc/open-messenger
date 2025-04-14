@@ -5,6 +5,7 @@ using MessengerBackend.Repositories;
 using Microsoft.AspNetCore.Identity;
 using MessengerBackend.DTOs;
 using Microsoft.EntityFrameworkCore;
+using MessengerBackend.Services;
 
 namespace MessengerBackend.Controllers
 {
@@ -14,11 +15,13 @@ namespace MessengerBackend.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly PasswordHasher<User> _hasher;
+        private readonly ITokenService _tokenService;
 
-        public UserController(IUserRepository userRepository)
+        public UserController(IUserRepository userRepository, ITokenService tokenService)
         {
             _userRepository = userRepository;
             _hasher = new PasswordHasher<User>();
+            _tokenService = tokenService;
         }
 
         [HttpPost("register")]
@@ -59,7 +62,56 @@ namespace MessengerBackend.Controllers
                 return Unauthorized("Invalid email or password.");
             }
 
-            return Ok(new { user.Id, user.Username, user.Email });
+            var accessToken = _tokenService.CreateAccessToken(user);
+            var refreshToken = _tokenService.CreateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userRepository.UpdateUserAsync(user);
+
+
+            return Ok(new { accessToken, refreshToken, user.Id, user.Username, user.Email });
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenDto dto)
+        {
+            var user = await _userRepository.GetUserByIdAsync(dto.UserId);
+            if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime < DateTime.UtcNow)
+            {
+                return Unauthorized("Invalid or expired refresh token.");
+            }
+
+            var accessToken = _tokenService.CreateAccessToken(user);
+            var refreshToken = _tokenService.CreateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userRepository.UpdateUserAsync(user);
+
+            return Ok(new
+            {
+                accessToken,
+                refreshToken
+            });
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout([FromBody] LogoutDto logoutRequest)
+        {
+            var user = await _userRepository.GetUserByIdAsync(logoutRequest.UserId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Clear the refresh token and its expiry time
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+
+            await _userRepository.UpdateUserAsync(user);
+
+            return Ok(new { message = "User logged out successfully." });
         }
 
 
@@ -79,6 +131,5 @@ namespace MessengerBackend.Controllers
 
             return Ok("User deleted successfully.");
         }
-
     }
 }

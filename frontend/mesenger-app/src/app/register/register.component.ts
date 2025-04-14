@@ -1,15 +1,15 @@
 import { Component } from '@angular/core';
 import { UserService } from '../user.service';
-import { UserCredentials } from '../../models/userCredentials';
+import { User } from '../../models/user';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute  } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute  } from '@angular/router';
 
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule,RouterModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
@@ -26,13 +26,13 @@ export class RegisterComponent {
   ) {}
 
   onRegister(): void {
-    const userCredentials: UserCredentials = {
+    const user: User = {
       email: this.email,
       password: this.password,
       username: this.username,
     };
   
-    this.userService.register(userCredentials).subscribe(
+    this.userService.register(user).subscribe(
       (response) => {
         console.log('User registered successfully', response);
         this.router.navigate(['/successfulRegistration']);

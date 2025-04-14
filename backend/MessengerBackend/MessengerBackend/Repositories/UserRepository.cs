@@ -39,9 +39,10 @@ namespace MessengerBackend.Repositories
         }
 
 
-        public Task UpdateUserAsync(User user)
+        public async Task UpdateUserAsync(User user)
         {
-            throw new NotImplementedException();
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<User?> GetUserByEmailAsync(string email)

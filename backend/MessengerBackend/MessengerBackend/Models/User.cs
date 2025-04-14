@@ -16,5 +16,8 @@ namespace MessengerBackend.Models
 
         [Required]
         public string PasswordHash { get; set; }
+
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
     }
 }
