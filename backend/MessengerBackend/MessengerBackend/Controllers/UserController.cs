@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using MessengerBackend.DTOs;
 using Microsoft.EntityFrameworkCore;
 using MessengerBackend.Services;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace MessengerBackend.Controllers
 {
@@ -24,6 +26,7 @@ namespace MessengerBackend.Controllers
             _tokenService = tokenService;
         }
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
@@ -46,6 +49,7 @@ namespace MessengerBackend.Controllers
             return Ok(new { user.Id, user.Username, user.Email });
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LogDto dto)
         {
@@ -96,6 +100,7 @@ namespace MessengerBackend.Controllers
             });
         }
 
+        [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout([FromBody] LogoutDto logoutRequest)
         {
@@ -105,7 +110,6 @@ namespace MessengerBackend.Controllers
                 return NotFound("User not found.");
             }
 
-            // Clear the refresh token and its expiry time
             user.RefreshToken = null;
             user.RefreshTokenExpiryTime = null;
 
@@ -116,7 +120,30 @@ namespace MessengerBackend.Controllers
 
 
 
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized("Invalid or missing userId in token.");
+            }
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            return Ok(new { user.Id, user.Username, user.Email });
+        }
+
+
+
+        [Authorize]
         [HttpDelete("deleteAccount/{userId}")]
         public async Task<IActionResult> DeleteUser(int userId)
         {
