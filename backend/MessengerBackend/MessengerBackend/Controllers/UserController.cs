@@ -158,5 +158,23 @@ namespace MessengerBackend.Controllers
 
             return Ok("User deleted successfully.");
         }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchUsers([FromQuery] string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return BadRequest("Query parameter is required.");
+            }
+
+            var users = await _userRepository.SearchUsersAsync(query);
+
+            if (users == null || !users.Any())
+            {
+                return NotFound("No users found.");
+            }
+
+            return Ok(users);
+        }
     }
 }

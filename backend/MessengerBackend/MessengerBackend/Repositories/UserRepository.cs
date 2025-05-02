@@ -54,5 +54,19 @@ namespace MessengerBackend.Repositories
         {
             return await _context.Users.FindAsync(id);
         }
+
+        public async Task<IEnumerable<User>> SearchUsersAsync(string query)
+        {
+            return await _context.Users
+                .Where(u => u.Username.Contains(query) || u.Email.Contains(query))
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> GetUsersByIdsAsync(List<int> userIds)
+        {
+            return await _context.Users
+                .Where(u => userIds.Contains(u.Id))
+                .ToListAsync();
+        }
     }
 }

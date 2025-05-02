@@ -10,5 +10,9 @@ namespace MessengerBackend.Repositories
         Task DeleteUserAsync(int id);
         Task<User?> GetUserByEmailAsync(string email);
         Task<User?> GetUserByIdAsync(int id);
+
+        Task<IEnumerable<User>> SearchUsersAsync(string query);
+        Task<List<User>> GetUsersByIdsAsync(List<int> userIds);
+
     }
 }

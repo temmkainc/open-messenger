@@ -1,9 +1,53 @@
-<div *ngIf="isLoggedIn; else loginRedirect">
-    <h1>Welcome, {{ user?.username }}</h1>
-    <p>Email: {{ user?.email }}</p>
+<div *ngIf="isLoggedIn; else loginRedirect" class = "dashboard-container">
+  <div class = "sidebar">
+    <h3>{{ user?.username }}</h3>
+    <p>{{ user?.email }}</p>
+
+    <hr />
+
+    <input [(ngModel)]="searchQuery" placeholder="Search users..." (input)="onSearchChange()" />
+    <div *ngIf="searchResults.length">
+      <div *ngFor="let user of searchResults">
+        <button (click)="startConversationWith(user)">{{ user.username }}</button>
+      </div>
+    </div>
+
+<hr />
+
+    <h4> Your Conversations</h4>
+    <div *ngFor="let convo of conversations">
+      <button (click)="selectConversation(convo)">
+        {{getOtherParticipantName(convo)}}
+      </button>
+    </div>
+
+    <hr />
+
     <button (click)="onLogout()">Logout</button>
   </div>
+
+  <div class = "chat-panel" *ngIf="selectedConversation">
+    <h3> Chat with {{getOtherParticipantName(selectedConversation)}}</h3>
+    <div class="messages" #messagesContainer>
+      <div *ngFor="let msg of messages" [class.me]="msg.senderId === user.id">
+        <div *ngIf="msg">
+          <span>{{ msg.text }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="message-form">
+      <input [(ngModel)]="newMessage" placeholder="Type your message..." (keydown.enter)="sendMessage()"/>
+      <button (click)="sendMessage()">Send</button>
+    </div>
+
+  </div>
+
+</div>
   
+
+
+
   <ng-template #loginRedirect>
     <p>You need to be logged in to access the dashboard. Redirecting to login...</p>
   </ng-template>

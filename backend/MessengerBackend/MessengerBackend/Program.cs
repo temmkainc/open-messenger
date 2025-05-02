@@ -8,6 +8,8 @@ using MessengerBackend.Repositories;
 using MessengerBackend.Services;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using MessengerBackend.Hubs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace MessengerBackend
 {
@@ -42,6 +44,22 @@ namespace MessengerBackend
                             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
                         )
                     };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                path.StartsWithSegments("/api/chathub"))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
             builder.Services.AddAuthorization();
@@ -49,15 +67,20 @@ namespace MessengerBackend
             builder.Services.AddCors(options => options.AddPolicy
                 ("MyCors", builder =>
                 {
-                    builder.WithOrigins("http://localhost:4200").
-                    AllowAnyMethod().AllowAnyHeader();
+                    builder.WithOrigins("http://localhost:4200")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
                 })
             );
 
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 
             builder.Services.AddControllers();
+            builder.Services.AddSignalR();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -73,12 +96,15 @@ namespace MessengerBackend
 
                 });
             }
+
+            app.UseWebSockets();
             app.UseCors("MyCors");
 
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
+            app.MapHub<ChatHub>("api/chathub");
 
             app.Run();
         }
